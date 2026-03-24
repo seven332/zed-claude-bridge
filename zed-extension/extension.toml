@@ -1,7 +1,7 @@
 id = "zed-claude-bridge"
 name = "Claude Bridge"
 description = "Bridges Zed editor with Claude Code CLI for /ide features"
-version = "0.1.0"
+version = "0.2.0"
 schema_version = 1
 authors = ["liangyou"]
 repository = "https://github.com/seven332/zed-claude-bridge"

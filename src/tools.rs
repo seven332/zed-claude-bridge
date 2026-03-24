@@ -55,7 +55,7 @@ fn selection_to_json(sel: Option<&SelectionState>, no_data_message: &str) -> ser
 impl ServerHandler for BridgeHandler {
     fn get_info(&self) -> ServerInfo {
         ServerInfo::default()
-            .with_server_info(Implementation::new("zed-claude-bridge", "0.1.0"))
+            .with_server_info(Implementation::new("zed-claude-bridge", env!("CARGO_PKG_VERSION")))
     }
 
     fn list_tools(
