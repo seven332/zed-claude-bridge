@@ -1,0 +1,8 @@
+[
+  {
+    "label": "zed-claude: send selection",
+    "command": "zed-claude-bridge send-selection",
+    "reveal": "never",
+    "hide": "always"
+  }
+]

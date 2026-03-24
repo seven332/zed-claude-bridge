@@ -13,28 +13,62 @@ Read these docs before implementing:
 
 ## Tech Stack
 
-- **Runtime**: Node.js (TypeScript)
-- **WebSocket**: `ws` library (same as VS Code extension uses)
-- **MCP**: `@modelcontextprotocol/sdk` for protocol implementation
-- **Build**: tsup or tsc
+- **Language**: Rust
+- **Async runtime**: tokio
+- **HTTP/WebSocket**: axum (with WebSocket upgrade)
+- **MCP**: rmcp (official Rust MCP SDK)
+- **Build**: cargo
 
-## Implementation Priority
+## Project Structure
 
-### Phase 1: Core (MVP)
+```
+src/
+  main.rs          -- CLI entry point (clap, --stdio mode)
+  lib.rs           -- Library root (re-exports modules)
+  server.rs        -- axum HTTP + WebSocket server
+  state.rs         -- Editor state store (Arc<RwLock>)
+  lock.rs          -- Lock file management + signal cleanup
+  lsp.rs           -- Minimal LSP server on stdio (for Zed extension)
+  tools.rs         -- MCP tool handler (ServerHandler impl)
+  transport.rs     -- axum WebSocket <-> rmcp Transport adapter
+  types.rs         -- Shared types (SelectionInput, SelectionState, etc.)
+tests/
+  integration.rs   -- End-to-end tests (HTTP, WebSocket, MCP protocol)
+zed/
+  tasks.json       -- Zed task definition (global: ~/.config/zed/tasks.json)
+  keymap.json      -- Keybinding (global: ~/.config/zed/keymap.json)
+zed-extension/     -- Zed extension (WASM, registers bridge as language server)
+  extension.toml   -- Extension manifest
+  Cargo.toml       -- WASM build config
+  src/lib.rs       -- Extension implementation
+```
 
-1. **Lock file management** — Write `~/.claude/ide/{port}.lock` on start, clean up on exit (SIGINT, SIGTERM, uncaughtException). Format in `docs/protocol.md#lock-file`.
-2. **WebSocket MCP server** — HTTP server on `127.0.0.1:{random_port}`, WebSocket upgrade with auth via `x-claude-code-ide-authorization` header. Use `@modelcontextprotocol/sdk` McpServer class with WebSocket transport.
-3. **HTTP API for Zed** — On the same HTTP server, handle `POST /api/selection` to receive editor state from Zed tasks. Store in memory.
-4. **MCP tools** — Implement at minimum: `getCurrentSelection`, `getLatestSelection`, `getWorkspaceFolders`. Return data from in-memory state.
-5. **Notifications** — Push `selection_changed` via WebSocket when state updates.
-6. **Zed tasks** — Provide `.zed/tasks.json` with a task that POSTs `$ZED_SELECTED_TEXT`, `$ZED_FILE`, `$ZED_ROW`, `$ZED_COLUMN`, `$ZED_LANGUAGE` to the bridge.
+## Phase 1 (MVP) — Done
 
-### Phase 2: Enhanced
+1. Lock file management (write/cleanup on signals/panic)
+2. WebSocket MCP server + HTTP API on same port
+3. `POST /api/selection` to receive editor state (auth required)
+4. MCP tools: `getCurrentSelection`, `getLatestSelection`, `getWorkspaceFolders`
+5. `selection_changed` notification via rmcp `CustomNotification` (50ms debounce)
+6. `send-selection` subcommand (replaces shell script, no jq/curl dependency)
+7. Zed task + keybinding config for pushing selection
+
+## Zed Extension — Done
+
+The bridge can run as a Zed extension for automatic lifecycle management:
+
+1. Install bridge binary: `cargo install --path .`
+2. In Zed: Extensions → Install Dev Extension → select `zed-extension/` directory
+3. The bridge auto-starts when any file is opened (registered for common languages)
+4. Selection pushing still requires the Zed task + keybinding (Zed API limitation)
+
+The extension registers the bridge as a "language server" with empty capabilities. Zed spawns the bridge with `--stdio`, which runs a minimal LSP on stdin/stdout (to keep Zed happy) alongside the MCP WebSocket server (for Claude Code).
+
+## Phase 2: Enhanced
 
 - `getDiagnostics` via CLI linters (tsc, eslint, ruff)
 - `getOpenEditors` tracking
 - `openFile` via `zed` CLI command
-- Auto-start bridge when Zed opens
 
 ## Key Protocol Details
 
@@ -59,11 +93,41 @@ Examples:
 - `feat(server): implement WebSocket MCP server`
 - `fix(lock): clean up lock file on SIGTERM`
 
+## Development
+
+```bash
+# Build
+cargo build
+
+# Run (standalone mode)
+cargo run -- /path/to/workspace
+
+# Run (stdio mode, used by Zed extension)
+cargo run -- --stdio /path/to/workspace
+
+# Run tests
+cargo test
+
+# Build release
+cargo build --release
+
+# Build Zed extension
+cd zed-extension && cargo build --target wasm32-wasip1 --release
+```
+
 ## Testing
 
-1. Start the bridge: `npx tsx src/index.ts /path/to/workspace`
+### Standalone mode
+1. Start the bridge: `cargo run -- /path/to/workspace`
 2. Verify lock file exists: `cat ~/.claude/ide/*.lock`
 3. Start Claude Code in same terminal: `claude`
 4. Claude Code should detect the IDE connection
 5. In Zed, select some code, trigger the task
 6. In Claude Code, ask "what code did I select?" — it should use `getCurrentSelection`
+
+### Extension mode
+1. `cargo install --path .`
+2. In Zed: Extensions → Install Dev Extension → select `zed-extension/`
+3. Open any file — bridge auto-starts
+4. Start `claude` in any terminal — it discovers via lock file
+5. Use Zed task to push selection
