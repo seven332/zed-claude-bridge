@@ -11,7 +11,7 @@ A bridge that lets Claude Code CLI running in Zed's terminal use `/ide` features
 │              │                         │                     │   ──────────────────>   │   CLI        │
 └──────────────┘                         └─────────────────────┘   (tool results,       └──────────────┘
        │                                         │                  notifications)
-       │  Ctrl+Shift+S                           │  ~/.claude/ide/{port}.lock
+       │  Shift+Cmd+L                           │  ~/.claude/ide/{port}.lock
        │  → zed-claude-bridge send-selection     │  ws://127.0.0.1:{port}
        └─────────────────────────────────────────┘
 ```
@@ -42,7 +42,7 @@ Copy the global Zed configuration:
 # Task (sends selection to bridge)
 cp zed/tasks.json ~/.config/zed/tasks.json
 
-# Keybinding (Ctrl+Shift+S triggers the task)
+# Keybinding (Shift+Cmd+L triggers the task)
 cp zed/keymap.json ~/.config/zed/keymap.json
 ```
 
@@ -53,7 +53,7 @@ Or merge into your existing config files.
 1. Open a project in Zed — the bridge starts automatically
 2. Start Claude Code in Zed's terminal: `claude`
 3. Claude Code auto-discovers the bridge via lock file
-4. Select code in the editor, press **Ctrl+Shift+S** to push it
+4. Select code in the editor, press **Shift+Cmd+L** to push it
 5. Ask Claude Code about your selection — it uses `getCurrentSelection` under the hood
 
 ## MCP Tools
@@ -76,7 +76,7 @@ cargo run -- /path   # Run standalone (without Zed extension)
 
 | Feature | VS Code Extension | zed-claude-bridge |
 |---------|-------------------|-------------------|
-| Selection | Auto (real-time) | Manual (Ctrl+Shift+S) |
+| Selection | Auto (real-time) | Manual (Shift+Cmd+L) |
 | Diagnostics | Auto (from LSP) | Not yet |
 | Open editors | Auto | Not yet |
 | Open/navigate file | Full API | Not yet |

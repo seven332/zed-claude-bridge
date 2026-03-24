@@ -83,14 +83,14 @@ WASM extension that registers the bridge as a "language server" for common langu
 Global Zed configuration:
 
 - **`tasks.json`**: Task that runs `~/.claude/bin/zed-claude-bridge send-selection`
-- **`keymap.json`**: Binds `ctrl-shift-s` to trigger the send selection task
+- **`keymap.json`**: Binds `shift-cmd-l` to trigger the send selection task
 
 ## Data Flow
 
 ### Selection Flow
 
 1. User selects code in Zed
-2. User presses `Ctrl+Shift+S` (configured keybinding)
+2. User presses `Shift+Cmd+L` (configured keybinding)
 3. Zed task runs `zed-claude-bridge send-selection` (reads env vars, POSTs to bridge)
 4. Bridge updates in-memory state (both locks held atomically)
 5. Bridge broadcasts change; notification loop sends `selection_changed` via rmcp `CustomNotification`
