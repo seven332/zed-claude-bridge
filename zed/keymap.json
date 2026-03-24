@@ -2,7 +2,7 @@
   {
     "context": "Editor",
     "bindings": {
-      "ctrl-shift-s": ["task::Spawn", { "task_name": "zed-claude: send selection" }]
+      "shift-cmd-l": ["task::Spawn", { "task_name": "zed-claude: send selection" }]
     }
   }
 ]
