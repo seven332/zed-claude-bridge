@@ -4,31 +4,8 @@ description = "Bridges Zed editor with Claude Code CLI for /ide features"
 version = "0.1.0"
 schema_version = 1
 authors = ["liangyou"]
-repository = "https://github.com/liangyou/zed-claude-bridge"
+repository = "https://github.com/seven332/zed-claude-bridge"
 
 [language_servers.claude-bridge]
 name = "Claude Bridge"
-languages = [
-    "Markdown",
-    "Rust",
-    "Python",
-    "JavaScript",
-    "TypeScript",
-    "TSX",
-    "Go",
-    "C",
-    "C++",
-    "Java",
-    "Ruby",
-    "TOML",
-    "JSON",
-    "YAML",
-    "HTML",
-    "CSS",
-    "Shell Script",
-    "Elixir",
-    "Zig",
-    "Lua",
-    "Swift",
-    "Kotlin",
-]
+languages = ["Plain Text", "Rust", "Python", "JavaScript", "TypeScript", "TSX", "Go", "C", "C++", "Java", "Ruby", "Markdown", "TOML", "JSON", "YAML", "HTML", "CSS", "Shell Script", "Elixir", "Zig", "Lua", "Swift", "Kotlin"]

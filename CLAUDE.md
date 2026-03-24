@@ -57,8 +57,8 @@ zed-extension/     -- Zed extension (WASM, registers bridge as language server)
 
 The bridge can run as a Zed extension for automatic lifecycle management:
 
-1. Install bridge binary: `cargo install --path .`
-2. In Zed: Extensions → Install Dev Extension → select `zed-extension/` directory
+1. In Zed: Extensions → Install Dev Extension → select `zed-extension/` directory
+2. The extension auto-downloads the binary from GitHub releases
 3. The bridge auto-starts when any file is opened (registered for common languages)
 4. Selection pushing still requires the Zed task + keybinding (Zed API limitation)
 
@@ -126,8 +126,7 @@ cd zed-extension && cargo build --target wasm32-wasip1 --release
 6. In Claude Code, ask "what code did I select?" — it should use `getCurrentSelection`
 
 ### Extension mode
-1. `cargo install --path .`
-2. In Zed: Extensions → Install Dev Extension → select `zed-extension/`
-3. Open any file — bridge auto-starts
-4. Start `claude` in any terminal — it discovers via lock file
-5. Use Zed task to push selection
+1. In Zed: Extensions → Install Dev Extension → select `zed-extension/`
+2. Open any file — bridge auto-starts (binary auto-downloaded from GitHub releases)
+3. Start `claude` in any terminal — it discovers via lock file
+4. Use Zed task to push selection (binary symlinked to `~/.claude/bin/` on first start)

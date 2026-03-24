@@ -76,13 +76,13 @@ Replaces the previous shell script approach — no dependency on `jq` or `curl`.
 
 ### 7. Zed Extension (`zed-extension/`)
 
-WASM extension that registers the bridge as a "language server" for common languages. Zed auto-starts/stops the bridge when a workspace opens/closes. The extension finds `zed-claude-bridge` binary via `worktree.which()` (must be in PATH).
+WASM extension that registers the bridge as a "language server" for common languages. Zed auto-starts/stops the bridge when a workspace opens/closes. The extension auto-downloads the binary from GitHub releases, cached per version.
 
 ### 8. Zed Integration (`zed/`)
 
 Global Zed configuration:
 
-- **`tasks.json`**: Task that runs `zed-claude-bridge send-selection`
+- **`tasks.json`**: Task that runs `~/.claude/bin/zed-claude-bridge send-selection`
 - **`keymap.json`**: Binds `ctrl-shift-s` to trigger the send selection task
 
 ## Data Flow
@@ -130,5 +130,4 @@ Both HTTP and WebSocket endpoints require the same auth token:
 - **`getDiagnostics`**: Integrate with CLI linters (tsc, eslint, ruff) or LSP proxy
 - **`getOpenEditors`**: Track open files
 - **`openFile`**: Use `zed` CLI command (`zed file.ts:10`)
-- **Auto-download binary**: Extension downloads bridge binary from GitHub Releases
 - **Zed extension API**: When Zed exposes selection events, eliminate the task trigger step

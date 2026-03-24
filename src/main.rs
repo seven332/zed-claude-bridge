@@ -35,6 +35,7 @@ async fn main() {
     // Server mode
     tracing_subscriber::fmt::init();
     lock::install_panic_hook();
+    lock::install_to_claude_bin();
 
     let workspace = cli.workspace.expect("workspace path required");
     let resolved = workspace
@@ -42,6 +43,15 @@ async fn main() {
         .expect("workspace folder not found");
 
     let workspace_str = resolved.to_string_lossy().into_owned();
+
+    // If another instance is already running for this workspace, just run the LSP
+    // stub (to keep Zed happy) without starting a second server.
+    if cli.stdio && lock::already_running(&workspace_str) {
+        eprintln!("zed-claude-bridge: another instance already running for this workspace");
+        lsp::run_stdio_lsp().await;
+        return;
+    }
+
     let handle = server::start_server(vec![workspace_str.clone()]).await;
     lock::write_lock_file(handle.port, &[workspace_str.clone()], &handle.auth_token);
 

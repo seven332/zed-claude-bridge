@@ -15,6 +15,78 @@ fn lock_path(port: u16) -> PathBuf {
     lock_dir().join(format!("{port}.lock"))
 }
 
+/// Check if another bridge instance is already running for this workspace.
+/// Returns true if a live lock file exists with a matching workspace folder.
+pub fn already_running(workspace: &str) -> bool {
+    let dir = lock_dir();
+    let entries = match fs::read_dir(&dir) {
+        Ok(e) => e,
+        Err(_) => return false,
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("lock") {
+            continue;
+        }
+        let content = match fs::read_to_string(&path) {
+            Ok(c) => c,
+            Err(_) => continue,
+        };
+        let data: serde_json::Value = match serde_json::from_str(&content) {
+            Ok(d) => d,
+            Err(_) => continue,
+        };
+        // Check if workspace matches
+        let folders = data["workspaceFolders"].as_array();
+        let has_workspace = folders
+            .map(|f| f.iter().any(|v| v.as_str() == Some(workspace)))
+            .unwrap_or(false);
+        if !has_workspace {
+            continue;
+        }
+        // Check if process is alive
+        if let Some(pid) = data["pid"].as_u64() {
+            let pid = pid as i32;
+            #[cfg(unix)]
+            {
+                // kill(pid, 0) checks if process exists without sending a signal
+                if unsafe { libc::kill(pid, 0) } == 0 {
+                    return true;
+                }
+            }
+            #[cfg(not(unix))]
+            {
+                let _ = pid;
+            }
+        }
+    }
+    false
+}
+
+/// Symlink the current binary to ~/.claude/bin/zed-claude-bridge so tasks can find it.
+pub fn install_to_claude_bin() {
+    let current_exe = match std::env::current_exe().and_then(|p| p.canonicalize()) {
+        Ok(p) => p,
+        Err(_) => return,
+    };
+    let bin_dir = dirs::home_dir()
+        .expect("could not find home directory")
+        .join(".claude")
+        .join("bin");
+    let _ = fs::create_dir_all(&bin_dir);
+    let link_path = bin_dir.join("zed-claude-bridge");
+    // Remove old symlink/file if it exists
+    let _ = fs::remove_file(&link_path);
+    #[cfg(unix)]
+    {
+        let _ = std::os::unix::fs::symlink(&current_exe, &link_path);
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = fs::copy(&current_exe, &link_path);
+    }
+}
+
 pub fn write_lock_file(port: u16, workspace_folders: &[String], auth_token: &str) {
     let dir = lock_dir();
     fs::create_dir_all(&dir).expect("failed to create lock dir");

@@ -28,19 +28,13 @@ Claude Code CLI auto-discovers IDE integrations by reading lock files from `~/.c
 
 ## Installation
 
-### 1. Install the bridge binary
-
-```bash
-cargo install --path .
-```
-
-### 2. Install the Zed extension
+### 1. Install the Zed extension
 
 In Zed: **Extensions → Install Dev Extension** → select the `zed-extension/` directory.
 
-The extension registers the bridge as a language server. It auto-starts when any file is opened and stops when the workspace closes.
+The extension auto-downloads the binary from GitHub releases on first launch. It auto-starts when any file is opened and stops when the workspace closes. The bridge also installs itself to `~/.claude/bin/` so the Zed task can find it.
 
-### 3. Configure keybinding and task
+### 2. Configure keybinding and task
 
 Copy the global Zed configuration:
 
